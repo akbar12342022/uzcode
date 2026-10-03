@@ -1,80 +1,94 @@
 @import "tailwindcss";
 
-/* Palette drawn from Samarkand tilework and ikat silk.
-   Light is "ganch" (carved plaster), dark is "tun" (night). */
+/* UzCode is dark-first on purpose: people practise here in the evening, next
+   to an editor that already looks like this. A light theme comes later.
+
+   Colour rule for the whole product: a saturated colour means a verdict.
+   Green, red and amber belong to test results and nothing else. Difficulty is
+   shown as a three-step meter, not as a coloured word, so the two systems
+   never compete for the same glance. The one brand colour — lojuvard, the
+   blue of Samarkand tilework — is reserved for links, focus and the primary
+   action. */
 :root {
-  color-scheme: light dark;
+  color-scheme: dark;
 
-  --bg: #f4f6fb;
-  --surface: #ffffff;
-  --sunken: #eceff8;
-  --ink: #131a3a;
-  --muted: #59628a;
-  --line: #d9deec;
-  --primary: #2a3fb5; /* lojuvard (lapis) */
-  --on-primary: #ffffff;
-  --easy: #0a7772; /* feruza (turquoise) */
-  --medium: #946200; /* za'faron (saffron) */
-  --hard: #b8263f; /* anor (pomegranate) */
+  --bg: #0c1114;
+  --surface: #121a1f; /* panels sitting on the page */
+  --raised: #19242b; /* inputs, hovered rows, code blocks */
+  --line: #223039;
+  --line-strong: #30434f; /* borders that need to read as an edge */
 
-  /* Site header: ikat band + bar + border. Keep in sync with SiteHeader. */
-  --header-h: calc(0.5rem + 3.5rem + 1px);
-}
+  --ink: #e4eaee;
+  --ink-dim: #b2c0c9;
+  --muted: #7e8e9a;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #0c1029;
-    --surface: #121737;
-    --sunken: #1a2048;
-    --ink: #e8ebfa;
-    --muted: #9aa3cc;
-    --line: #272e5c;
-    --primary: #93a5ff;
-    --on-primary: #0c1029;
-    --easy: #4fd1c7;
-    --medium: #f5be4b;
-    --hard: #ff8097;
-  }
+  --accent: #6d7bf5; /* lojuvard */
+  --accent-hover: #8290ff;
+  --on-accent: #0a0d16;
+
+  --ok: #3fbf6f; /* test passed */
+  --fail: #e5534b; /* test failed */
+  --warn: #d9a441; /* time limit, pending */
+
+  /* Header: bar + bottom border. Keep in sync with SiteHeader. */
+  --header-h: calc(3.5rem + 1px);
 }
 
 @theme inline {
   --color-bg: var(--bg);
   --color-surface: var(--surface);
-  --color-sunken: var(--sunken);
-  --color-ink: var(--ink);
-  --color-muted: var(--muted);
+  --color-raised: var(--raised);
   --color-line: var(--line);
-  --color-primary: var(--primary);
-  --color-on-primary: var(--on-primary);
-  --color-easy: var(--easy);
-  --color-medium: var(--medium);
-  --color-hard: var(--hard);
+  --color-line-strong: var(--line-strong);
+  --color-ink: var(--ink);
+  --color-ink-dim: var(--ink-dim);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-on-accent: var(--on-accent);
+  --color-ok: var(--ok);
+  --color-fail: var(--fail);
+  --color-warn: var(--warn);
 
-  --font-sans: var(--font-golos);
-  --font-display: var(--font-tektur);
-  --font-mono: var(--font-jetbrains);
+  --font-sans: var(--font-plex-sans);
+  --font-mono: var(--font-plex-mono);
 }
 
 body {
   background: var(--bg);
   color: var(--ink);
+  font-family: var(--font-sans);
 }
 
 :focus-visible {
-  outline: 2px solid var(--primary);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
-/* Quiet scrollbars for panes that scroll inside the page. */
+::selection {
+  background: color-mix(in oklab, var(--accent) 35%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Panes that scroll inside the page keep their scrollbar quiet. */
 .scroll-pane {
   scrollbar-width: thin;
-  scrollbar-color: var(--line) transparent;
+  scrollbar-color: var(--line-strong) transparent;
 }
 
 /* Problem statements (rendered Markdown). */
 .statement {
   font-size: 0.9375rem;
-  line-height: 1.7;
+  line-height: 1.75;
+  color: var(--ink-dim);
 }
 
 .statement > * + * {
@@ -83,20 +97,18 @@ body {
 
 .statement :is(h1, h2, h3, h4) {
   margin-top: 2em;
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--muted);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--ink);
 }
 
 .statement strong {
   font-weight: 600;
+  color: var(--ink);
 }
 
 .statement a {
-  color: var(--primary);
+  color: var(--accent);
   text-decoration: underline;
   text-underline-offset: 2px;
 }
@@ -117,17 +129,18 @@ body {
 
 .statement code {
   border-radius: 0.25rem;
-  background: var(--sunken);
+  background: var(--raised);
   padding: 0.1em 0.35em;
   font-family: var(--font-mono);
   font-size: 0.875em;
+  color: var(--ink);
 }
 
 .statement pre {
   overflow-x: auto;
   border: 1px solid var(--line);
   border-radius: 0.5rem;
-  background: var(--sunken);
+  background: var(--raised);
   padding: 0.75rem 1rem;
   line-height: 1.6;
 }

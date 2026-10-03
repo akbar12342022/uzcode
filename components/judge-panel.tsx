@@ -15,12 +15,12 @@ export type JudgeState =
   | { status: "done"; mode: JudgeMode; response: JudgeResponse };
 
 const VERDICTS: Record<Verdict, { label: string; tone: string }> = {
-  ACCEPTED: { label: "Qabul qilindi", tone: "text-easy" },
-  WRONG_ANSWER: { label: "Noto'g'ri javob", tone: "text-hard" },
-  TIME_LIMIT_EXCEEDED: { label: "Vaqt chegarasidan oshdi", tone: "text-medium" },
-  RUNTIME_ERROR: { label: "Bajarilish xatosi", tone: "text-hard" },
-  COMPILE_ERROR: { label: "Kompilyatsiya xatosi", tone: "text-hard" },
-  INTERNAL_ERROR: { label: "Tizim xatosi", tone: "text-hard" },
+  ACCEPTED: { label: "Qabul qilindi", tone: "text-ok" },
+  WRONG_ANSWER: { label: "Noto'g'ri javob", tone: "text-fail" },
+  TIME_LIMIT_EXCEEDED: { label: "Vaqt chegarasidan oshdi", tone: "text-warn" },
+  RUNTIME_ERROR: { label: "Bajarilish xatosi", tone: "text-fail" },
+  COMPILE_ERROR: { label: "Kompilyatsiya xatosi", tone: "text-fail" },
+  INTERNAL_ERROR: { label: "Tizim xatosi", tone: "text-fail" },
 };
 
 function peak(values: (number | null)[]) {
@@ -90,7 +90,7 @@ function Report({ report }: { report: JudgeReport }) {
                   VERDICTS[verdict].tone,
                   index === selected
                     ? "border-current bg-surface"
-                    : "border-line hover:bg-sunken",
+                    : "border-line hover:bg-raised",
                 )}
               >
                 {index + 1}
@@ -160,7 +160,7 @@ export function JudgePanel({
           type="button"
           onClick={onClose}
           aria-label="Natijani yopish"
-          className="rounded-md p-1 text-muted transition-colors hover:bg-sunken hover:text-ink"
+          className="rounded-md p-1 text-muted transition-colors hover:bg-raised hover:text-ink"
         >
           <X aria-hidden className="size-4" />
         </button>
@@ -176,7 +176,7 @@ export function JudgePanel({
         ) : state.response.ok ? (
           <Report report={state.response.report} />
         ) : (
-          <p className="text-sm text-hard">{state.response.message}</p>
+          <p className="text-sm text-fail">{state.response.message}</p>
         )}
       </div>
     </section>

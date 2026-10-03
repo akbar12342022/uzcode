@@ -1,22 +1,32 @@
-import { Golos_Text, JetBrains_Mono, Tektur } from "next/font/google";
+import localFont from "next/font/local";
 
-// Font definitions live in one module so the server layout and the client-side
-// code editor share a single hosted instance of each face.
+// Two faces from one family: the sans carries prose and UI, the mono carries
+// headlines, code and every number. Sharing a family keeps the proportions
+// consistent when the two sit side by side in a table row.
+//
+// The files live in the repository rather than coming from Google Fonts, so
+// the site has no third-party request on first paint and keeps working when
+// that service is blocked — which, for part of this audience, it is.
+// IBM Plex is licensed under the SIL Open Font License.
 
-/** Body and UI text. */
-export const golos = Golos_Text({
-  subsets: ["latin"],
-  variable: "--font-golos",
+/** Body, UI labels, problem statements. */
+export const plexSans = localFont({
+  variable: "--font-plex-sans",
+  display: "swap",
+  src: [
+    { path: "../app/fonts/plex-sans-400.woff2", weight: "400", style: "normal" },
+    { path: "../app/fonts/plex-sans-500.woff2", weight: "500", style: "normal" },
+    { path: "../app/fonts/plex-sans-600.woff2", weight: "600", style: "normal" },
+  ],
 });
 
-/** Display face: wordmark and page titles only. */
-export const tektur = Tektur({
-  subsets: ["latin"],
-  variable: "--font-tektur",
-});
-
-/** Code, test data and numeric labels. */
-export const jetbrainsMono = JetBrains_Mono({
-  subsets: ["latin"],
-  variable: "--font-jetbrains",
+/** Headlines, code, test data, every numeric column. */
+export const plexMono = localFont({
+  variable: "--font-plex-mono",
+  display: "swap",
+  src: [
+    { path: "../app/fonts/plex-mono-400.woff2", weight: "400", style: "normal" },
+    { path: "../app/fonts/plex-mono-500.woff2", weight: "500", style: "normal" },
+    { path: "../app/fonts/plex-mono-600.woff2", weight: "600", style: "normal" },
+  ],
 });

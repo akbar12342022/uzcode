@@ -1,8 +1,6 @@
 "use client";
 
 import Editor, {
-  type BeforeMount,
-  type EditorProps,
   type OnChange,
   type OnMount,
 } from "@monaco-editor/react";
@@ -12,12 +10,18 @@ import {
   useMemo,
   useRef,
   useState,
-  useSyncExternalStore,
 } from "react";
 import { runCode, submitCode } from "@/app/problems/actions";
+import "@/components/monaco-config";
 import { EditorPlaceholder } from "@/components/editor-placeholder";
 import { JudgePanel, type JudgeState } from "@/components/judge-panel";
-import { jetbrainsMono } from "@/lib/fonts";
+import {
+  EDITOR_FONT_SIZE,
+  EDITOR_OPTIONS,
+  EDITOR_THEME,
+  defineEditorTheme,
+} from "@/lib/editor-theme";
+import { plexMono } from "@/lib/fonts";
 import type { JudgeMode, JudgeResponse } from "@/lib/judge-types";
 import {
   LANGUAGES,
@@ -62,92 +66,6 @@ function readSavedCode(slug: string, languageId: LanguageId, starter: string) {
 }
 
 // ---------------------------------------------------------------------------
-// Editor appearance
-// ---------------------------------------------------------------------------
-
-const EDITOR_FONT_SIZE = 14;
-
-const EDITOR_OPTIONS: NonNullable<EditorProps["options"]> = {
-  ariaLabel: "Kod muharriri",
-  fontFamily: jetbrainsMono.style.fontFamily,
-  fontSize: EDITOR_FONT_SIZE,
-  lineHeight: 22,
-  tabSize: 4,
-  minimap: { enabled: false },
-  scrollBeyondLastLine: false,
-  padding: { top: 16, bottom: 16 },
-  overviewRulerLanes: 0,
-  scrollbar: { verticalScrollbarSize: 10, horizontalScrollbarSize: 10 },
-  fixedOverflowWidgets: true,
-};
-
-// Syntax colours follow the site palette: lapis keywords, turquoise strings,
-// saffron numbers, pomegranate types. Monaco needs literal hex values.
-const defineThemes: BeforeMount = (monaco) => {
-  monaco.editor.defineTheme("uzcode-light", {
-    base: "vs",
-    inherit: true,
-    rules: [
-      { token: "comment", foreground: "7a83a8", fontStyle: "italic" },
-      { token: "keyword", foreground: "2a3fb5" },
-      { token: "string", foreground: "0a7772" },
-      { token: "number", foreground: "946200" },
-      { token: "type", foreground: "b8263f" },
-    ],
-    colors: {
-      "editor.background": "#ffffff",
-      "editor.foreground": "#131a3a",
-      "editorLineNumber.foreground": "#a3abc9",
-      "editorLineNumber.activeForeground": "#59628a",
-      "editor.lineHighlightBackground": "#f4f6fb",
-      "editor.selectionBackground": "#cdd5f7",
-      "editorCursor.foreground": "#2a3fb5",
-      "editorIndentGuide.background1": "#e4e8f3",
-      "editorIndentGuide.activeBackground1": "#c3cae2",
-    },
-  });
-
-  monaco.editor.defineTheme("uzcode-dark", {
-    base: "vs-dark",
-    inherit: true,
-    rules: [
-      { token: "comment", foreground: "6e78a8", fontStyle: "italic" },
-      { token: "keyword", foreground: "9db0ff" },
-      { token: "string", foreground: "5fd4cb" },
-      { token: "number", foreground: "f5be4b" },
-      { token: "type", foreground: "ff9db0" },
-    ],
-    colors: {
-      "editor.background": "#121737",
-      "editor.foreground": "#e8ebfa",
-      "editorLineNumber.foreground": "#4d568f",
-      "editorLineNumber.activeForeground": "#b4bdea",
-      "editor.lineHighlightBackground": "#181e47",
-      "editor.selectionBackground": "#2f3d94",
-      "editorCursor.foreground": "#f0a81e",
-      "editorIndentGuide.background1": "#222a5a",
-      "editorIndentGuide.activeBackground1": "#3a4486",
-    },
-  });
-};
-
-const DARK_SCHEME = "(prefers-color-scheme: dark)";
-
-function subscribeToColorScheme(onChange: () => void) {
-  const query = window.matchMedia(DARK_SCHEME);
-  query.addEventListener("change", onChange);
-  return () => query.removeEventListener("change", onChange);
-}
-
-function usePrefersDark() {
-  return useSyncExternalStore(
-    subscribeToColorScheme,
-    () => window.matchMedia(DARK_SCHEME).matches,
-    () => false,
-  );
-}
-
-// ---------------------------------------------------------------------------
 // Workspace
 // ---------------------------------------------------------------------------
 
@@ -158,7 +76,6 @@ type CodeWorkspaceProps = {
 
 export function CodeWorkspace({ slug, starterCode }: CodeWorkspaceProps) {
   const editorRef = useRef<Parameters<OnMount>[0] | null>(null);
-  const prefersDark = usePrefersDark();
 
   const [languageId, setLanguageId] = useState<LanguageId>(() => {
     const stored = readStorage(LANGUAGE_KEY);
@@ -242,7 +159,7 @@ export function CodeWorkspace({ slug, starterCode }: CodeWorkspaceProps) {
     // Monaco measures glyph widths as it starts. If the webfont arrives later
     // the cursor drifts, so measure again once the font is ready.
     document.fonts
-      .load(`${EDITOR_FONT_SIZE}px ${jetbrainsMono.style.fontFamily}`)
+      .load(`${EDITOR_FONT_SIZE}px ${plexMono.style.fontFamily}`)
       .then(() => monaco.editor.remeasureFonts())
       .catch(() => {});
   };
@@ -275,10 +192,10 @@ export function CodeWorkspace({ slug, starterCode }: CodeWorkspaceProps) {
               key={id}
               className={cn(
                 "cursor-pointer rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
-                "has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-primary",
+                "has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-accent",
                 id === language.id
-                  ? "bg-primary/10 text-primary"
-                  : "text-muted hover:bg-sunken hover:text-ink",
+                  ? "bg-accent/10 text-accent"
+                  : "text-muted hover:bg-raised hover:text-ink",
               )}
             >
               <input
@@ -300,7 +217,7 @@ export function CodeWorkspace({ slug, starterCode }: CodeWorkspaceProps) {
             <button
               type="button"
               onClick={resetCode}
-              className="font-medium text-hard hover:underline"
+              className="font-medium text-fail hover:underline"
             >
               Qaytarish
             </button>
@@ -317,7 +234,7 @@ export function CodeWorkspace({ slug, starterCode }: CodeWorkspaceProps) {
             type="button"
             disabled={!dirty}
             onClick={() => setConfirmingReset(true)}
-            className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium text-muted transition-colors hover:bg-sunken hover:text-ink disabled:pointer-events-none disabled:opacity-40"
+            className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium text-muted transition-colors hover:bg-raised hover:text-ink disabled:pointer-events-none disabled:opacity-40"
           >
             <RotateCcw aria-hidden className="size-4" />
             <span className="sr-only sm:not-sr-only">Asl holiga qaytarish</span>
@@ -331,10 +248,10 @@ export function CodeWorkspace({ slug, starterCode }: CodeWorkspaceProps) {
             path={`${slug}/${language.file}`}
             defaultLanguage={language.monaco}
             defaultValue={initialCode}
-            theme={prefersDark ? "uzcode-dark" : "uzcode-light"}
+            theme={EDITOR_THEME}
             options={EDITOR_OPTIONS}
             loading={<EditorPlaceholder />}
-            beforeMount={defineThemes}
+            beforeMount={defineEditorTheme}
             onMount={handleMount}
             onChange={handleChange}
           />
@@ -350,7 +267,7 @@ export function CodeWorkspace({ slug, starterCode }: CodeWorkspaceProps) {
             type="button"
             disabled={!editorReady || judging}
             onClick={() => startJudge("run")}
-            className="inline-flex items-center gap-1.5 rounded-md border border-line px-3 py-1.5 text-sm font-medium text-ink transition-colors hover:bg-sunken disabled:pointer-events-none disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-md border border-line px-3 py-1.5 text-sm font-medium text-ink transition-colors hover:bg-raised disabled:pointer-events-none disabled:opacity-50"
           >
             {judging && judgeState.mode === "run" ? (
               <LoaderCircle
@@ -366,7 +283,7 @@ export function CodeWorkspace({ slug, starterCode }: CodeWorkspaceProps) {
             type="button"
             disabled={!editorReady || judging}
             onClick={() => startJudge("submit")}
-            className="inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-on-primary transition-opacity hover:opacity-90 disabled:pointer-events-none disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-on-accent transition-opacity hover:opacity-90 disabled:pointer-events-none disabled:opacity-50"
           >
             {judging && judgeState.mode === "submit" ? (
               <LoaderCircle
