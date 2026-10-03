@@ -149,3 +149,27 @@ body {
   background: none;
   padding: 0;
 }
+
+/* Hero only: a faint plotting grid behind the content. The fade lives on a
+   layer of its own — put the mask on the section itself and it fades the
+   text and the editor with it. */
+.dot-grid {
+  position: relative;
+  isolation: isolate;
+}
+
+.dot-grid::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: radial-gradient(
+    circle at 1px 1px,
+    var(--line-strong) 1px,
+    transparent 0
+  );
+  background-size: 30px 30px;
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 80%);
+  mask-image: linear-gradient(to bottom, #000 0%, transparent 80%);
+}

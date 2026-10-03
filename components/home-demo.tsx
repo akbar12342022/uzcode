@@ -1,6 +1,6 @@
 "use client";
 
-import { LoaderCircle, Play } from "lucide-react";
+import { Check, LoaderCircle, Play, X } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useRef, useState } from "react";
 import "@/components/monaco-config";
@@ -11,6 +11,7 @@ import {
   EDITOR_THEME,
   defineEditorTheme,
 } from "@/lib/editor-theme";
+import { cn } from "@/lib/utils";
 
 // Monaco is a large download and the page must paint before it arrives.
 const MonacoEditor = dynamic(
@@ -60,11 +61,12 @@ self.onmessage = function (event) {
   var results = [];
   for (var index = 0; index < tests.length; index++) {
     var test = tests[index];
+    var startedAt = Date.now();
     try {
       var got = solve(test.nums.slice(), test.target);
-      results.push({ ok: matches(got, test.expected), got: show(got) });
+      results.push({ ok: matches(got, test.expected), got: show(got), ms: Date.now() - startedAt });
     } catch (error) {
-      results.push({ ok: false, got: "xato: " + readMessage(error) });
+      results.push({ ok: false, got: "xato: " + readMessage(error), ms: Date.now() - startedAt });
     }
   }
   self.postMessage({ kind: "done", results: results });
@@ -94,8 +96,12 @@ function matches(got, expected) {
 }
 `;
 
-type TestResult = { ok: boolean; got: string };
+type TestResult = { ok: boolean; got: string; ms: number };
 type Status = "idle" | "running" | "done" | "error" | "timeout";
+
+function describe(test: (typeof TESTS)[number]) {
+  return `nums = ${JSON.stringify(test.nums)}, target = ${test.target}`;
+}
 
 export function HomeDemo() {
   const codeRef = useRef(STARTER);
@@ -165,13 +171,19 @@ export function HomeDemo() {
   const cells: CellState[] | null =
     results?.map((result) => (result.ok ? "ok" : "fail")) ?? null;
   const passed = results?.filter((result) => result.ok).length ?? 0;
-  const firstFailure = results?.findIndex((result) => !result.ok) ?? -1;
 
   return (
-    <div className="overflow-hidden rounded-xl border border-line bg-surface">
-      <div className="flex items-center justify-between gap-3 border-b border-line px-4 py-2.5">
+    <div className="overflow-hidden rounded-xl border border-line-strong bg-surface shadow-[0_24px_60px_-30px_rgba(0,0,0,0.9)]">
+      <div className="flex items-center gap-3 border-b border-line bg-raised/60 px-4 py-2.5">
+        <span className="flex gap-1.5">
+          <span className="size-2.5 rounded-full bg-line-strong" />
+          <span className="size-2.5 rounded-full bg-line-strong" />
+          <span className="size-2.5 rounded-full bg-line-strong" />
+        </span>
         <p className="font-mono text-sm text-ink">twoSum.js</p>
-        <p className="text-xs text-muted">Brauzeringizda ishlaydi</p>
+        <p className="ml-auto font-mono text-xs text-muted">
+          JavaScript · 2 s
+        </p>
       </div>
 
       <div className="border-b border-line px-4 py-3.5">
@@ -180,12 +192,9 @@ export function HomeDemo() {
             "Butun sonlar ro'yxati va nishon son berilgan. Yig'indisi nishonga teng bo'lgan ikki sonning indekslarini qaytaring."
           }
         </p>
-        <p className="mt-2 font-mono text-xs text-muted">
-          nums = [2, 7, 11, 15], target = 9 → [0, 1]
-        </p>
       </div>
 
-      <div className="h-[11rem] sm:h-[12.5rem]">
+      <div className="h-[208px] border-b border-line sm:h-[252px]">
         <MonacoEditor
           defaultLanguage="javascript"
           defaultValue={STARTER}
@@ -199,27 +208,55 @@ export function HomeDemo() {
         />
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line px-4 py-3">
-        <div className="flex items-center gap-3">
-          <TestCells total={TESTS.length} results={cells} />
-          <p
-            aria-live="polite"
-            className="text-sm text-muted"
-          >
-            {status === "idle" && `${TESTS.length} ta test kutmoqda`}
-            {status === "running" && "Tekshirilmoqda…"}
-            {status === "timeout" && "Vaqt tugadi"}
-            {status === "error" && "Kodda xato"}
-            {status === "done" &&
-              (passed === TESTS.length ? (
-                <span className="text-ok">
-                  {`Hammasi o'tdi — ${passed} / ${TESTS.length}`}
+      <ol className="divide-y divide-line/70 border-b border-line bg-bg/40 font-mono text-xs">
+        {TESTS.map((test, index) => {
+          const result = results?.[index];
+          return (
+            <li
+              key={index}
+              className="flex items-center gap-3 px-4 py-2 whitespace-nowrap"
+            >
+              <span className="w-12 shrink-0 text-muted">
+                test {index + 1}
+              </span>
+              <span className="min-w-0 flex-1 truncate text-ink-dim">
+                {describe(test)}
+              </span>
+              {result ? (
+                <span
+                  className={cn(
+                    "flex shrink-0 items-center gap-1.5",
+                    result.ok ? "text-ok" : "text-fail",
+                  )}
+                >
+                  {result.ok ? (
+                    <Check aria-hidden className="size-3.5" />
+                  ) : (
+                    <X aria-hidden className="size-3.5" />
+                  )}
+                  {result.ok ? "o'tdi" : result.got}
                 </span>
               ) : (
-                <span className="text-fail">
-                  {`${passed} / ${TESTS.length} test o'tdi`}
-                </span>
-              ))}
+                <span className="shrink-0 text-muted">—</span>
+              )}
+            </li>
+          );
+        })}
+      </ol>
+
+      <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+        <div className="flex items-center gap-3">
+          <TestCells total={TESTS.length} results={cells} />
+          <p aria-live="polite" className="text-sm text-muted">
+            {status === "idle" && `${TESTS.length} ta test tayyor`}
+            {status === "running" && "Tekshirilmoqda…"}
+            {status === "timeout" && "Vaqt tugadi"}
+            {status === "error" && (message ?? "Kodda xato")}
+            {status === "done" && (
+              <span className={passed === TESTS.length ? "text-ok" : "text-fail"}>
+                {`${passed} / ${TESTS.length} test o'tdi`}
+              </span>
+            )}
           </p>
         </div>
 
@@ -227,7 +264,7 @@ export function HomeDemo() {
           type="button"
           onClick={run}
           disabled={status === "running"}
-          className="inline-flex items-center gap-2 rounded-md bg-accent px-3.5 py-2 text-sm font-medium text-on-accent transition-colors hover:bg-accent-hover disabled:pointer-events-none disabled:opacity-50"
+          className="inline-flex items-center gap-2 rounded-md bg-accent px-4 py-2 text-sm font-medium text-on-accent transition-colors hover:bg-accent-hover disabled:pointer-events-none disabled:opacity-50"
         >
           {status === "running" ? (
             <LoaderCircle aria-hidden className="size-4 animate-spin" />
@@ -237,29 +274,6 @@ export function HomeDemo() {
           Ishga tushirish
         </button>
       </div>
-
-      {(status === "error" || status === "timeout") && (
-        <p className="border-t border-line bg-raised px-4 py-3 font-mono text-xs leading-relaxed text-fail">
-          {status === "timeout"
-            ? "Kod 2,5 soniyadan ko'p ishladi. Cheksiz sikl bo'lishi mumkin."
-            : message}
-        </p>
-      )}
-
-      {status === "done" && firstFailure >= 0 && results && (
-        <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-1 border-t border-line bg-raised px-4 py-3 font-mono text-xs">
-          <dt className="text-muted">kirish</dt>
-          <dd className="text-ink-dim">
-            {`nums = ${JSON.stringify(TESTS[firstFailure].nums)}, target = ${TESTS[firstFailure].target}`}
-          </dd>
-          <dt className="text-muted">kutilgan</dt>
-          <dd className="text-ink-dim">
-            {JSON.stringify(TESTS[firstFailure].expected)}
-          </dd>
-          <dt className="text-muted">sizniki</dt>
-          <dd className="text-fail">{results[firstFailure].got}</dd>
-        </dl>
-      )}
     </div>
   );
 }

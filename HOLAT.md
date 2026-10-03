@@ -12,7 +12,8 @@
    - Jadvallar: `User`, `Problem`, `TestCase`, `Submission` (migratsiya qilingan).
    - Baza **5433** portda ishlaydi (5432 band edi).
 3. **Namuna masalalar** — 6 ta masala seed qilindi (oson/o'rta/qiyin), test holatlari bilan.
-4. **Masalalar sahifalari + Monaco editor**
+4. **Bosh sahifa** — `app/page.tsx`: qisqa izoh, haqiqiy raqamlar (masala/til/test soni), brauzerda ishlaydigan namuna masala (`components/home-demo.tsx` — kod Web Worker ichida, 2,5 s chegara bilan bajariladi, serverga bormaydi), mavzular va masalalar jadvali.
+5. **Masalalar sahifalari + Monaco editor**
    - `/problems` — masalalar ro'yxati (raqam, nom, teglar, qiyinlik).
    - `/problems/[slug]` — chapda shart (Markdown) va namuna testlar, o'ngda kod muharriri.
    - Muharrir: Python / JavaScript / C++, har bir til uchun alohida kod; kod brauzerda (localStorage) saqlanadi; "Asl holiga qaytarish" tugmasi.
@@ -57,8 +58,8 @@ npm run db:migrate  # yangi migratsiya
 - **Til qo'llab-quvvatlash:** Python, JavaScript, C++ (keyin ko'proq). Ro'yxat `lib/languages.ts` da.
 - **Next.js 16:** `params` — Promise (`PageProps<'/problems/[slug]'>`); `error.tsx` da `retry`. Kod yozishdan oldin `node_modules/next/dist/docs/` ni o'qing (AGENTS.md).
 - **Ma'lumot olish:** `lib/problems.ts` (faqat serverda). Mijozga faqat **namuna** testlar (`isSample`) yuboriladi — yashirin testlar serverda qoladi.
-- **Muharrir:** `components/code-workspace.tsx`. Monaco brauzerda jsDelivr CDN'dan yuklanadi (internet kerak). Kod `uzcode:code:<slug>:<til>` kaliti bilan localStorage'da turadi.
-- **Dizayn:** ranglar va shriftlar `app/globals.css` + `lib/fonts.ts` da (Golos Text, Tektur, JetBrains Mono); ikat naqshi — `components/ikat.tsx`.
+- **Muharrir:** `components/code-workspace.tsx`. Monaco CDN'dan emas, saytning o'zidan beriladi: `scripts/copy-monaco.mjs` uni `public/monaco/vs` ga ko'chiradi (`predev`/`prebuild` avtomatik ishga tushiradi), `components/monaco-config.ts` manzilni ko'rsatadi. Kod `uzcode:code:<slug>:<til>` kaliti bilan localStorage'da turadi.
+- **Dizayn:** qorong'i dev-tool ko'rinishi. Ranglar `app/globals.css` da. Qoida: to'yingan rang faqat tekshiruv natijasini bildiradi (yashil/qizil/sariq); qiyinlik rang bilan emas, uch bo'lakli o'lchagich bilan ko'rsatiladi (`components/difficulty.tsx`). Brend rangi — lojuvard indigo. Shriftlar: IBM Plex Sans + Mono, `app/fonts/` dan beriladi (Google Fonts emas).
 - **Masala sharti:** Markdown, `react-markdown` bilan serverda render qilinadi (xom HTML ko'rsatilmaydi).
 
 ## ⚠️ Judge0 — kalit kerak (5-bosqichni yakunlash)

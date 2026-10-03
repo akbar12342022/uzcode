@@ -30,6 +30,9 @@ export async function getProblemList() {
       difficulty: true,
       tags: true,
       orderIndex: true,
+      timeLimitMs: true,
+      // Shown in the list so a problem's size is visible before opening it.
+      _count: { select: { testCases: true } },
     },
   });
 }
