@@ -1,26 +1,138 @@
 @import "tailwindcss";
 
+/* Palette drawn from Samarkand tilework and ikat silk.
+   Light is "ganch" (carved plaster), dark is "tun" (night). */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+  color-scheme: light dark;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --bg: #f4f6fb;
+  --surface: #ffffff;
+  --sunken: #eceff8;
+  --ink: #131a3a;
+  --muted: #59628a;
+  --line: #d9deec;
+  --primary: #2a3fb5; /* lojuvard (lapis) */
+  --on-primary: #ffffff;
+  --easy: #0a7772; /* feruza (turquoise) */
+  --medium: #946200; /* za'faron (saffron) */
+  --hard: #b8263f; /* anor (pomegranate) */
+
+  /* Site header: ikat band + bar + border. Keep in sync with SiteHeader. */
+  --header-h: calc(0.5rem + 3.5rem + 1px);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --bg: #0c1029;
+    --surface: #121737;
+    --sunken: #1a2048;
+    --ink: #e8ebfa;
+    --muted: #9aa3cc;
+    --line: #272e5c;
+    --primary: #93a5ff;
+    --on-primary: #0c1029;
+    --easy: #4fd1c7;
+    --medium: #f5be4b;
+    --hard: #ff8097;
   }
 }
 
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-sunken: var(--sunken);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-primary: var(--primary);
+  --color-on-primary: var(--on-primary);
+  --color-easy: var(--easy);
+  --color-medium: var(--medium);
+  --color-hard: var(--hard);
+
+  --font-sans: var(--font-golos);
+  --font-display: var(--font-tektur);
+  --font-mono: var(--font-jetbrains);
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Quiet scrollbars for panes that scroll inside the page. */
+.scroll-pane {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+}
+
+/* Problem statements (rendered Markdown). */
+.statement {
+  font-size: 0.9375rem;
+  line-height: 1.7;
+}
+
+.statement > * + * {
+  margin-top: 0.9em;
+}
+
+.statement :is(h1, h2, h3, h4) {
+  margin-top: 2em;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.statement strong {
+  font-weight: 600;
+}
+
+.statement a {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.statement ul {
+  list-style: disc;
+  padding-left: 1.25rem;
+}
+
+.statement ol {
+  list-style: decimal;
+  padding-left: 1.25rem;
+}
+
+.statement li + li {
+  margin-top: 0.3em;
+}
+
+.statement code {
+  border-radius: 0.25rem;
+  background: var(--sunken);
+  padding: 0.1em 0.35em;
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+}
+
+.statement pre {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 0.5rem;
+  background: var(--sunken);
+  padding: 0.75rem 1rem;
+  line-height: 1.6;
+}
+
+.statement pre code {
+  background: none;
+  padding: 0;
 }

@@ -1,0 +1,28 @@
+# Local development services for UzCode.
+# Start with:  docker compose up -d
+#
+# This file runs PostgreSQL. Judge0 (code execution) is configured separately
+# via environment variables (JUDGE0_URL) — see README.
+
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: uzcode-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: uzcode
+      POSTGRES_PASSWORD: uzcode_dev_password
+      POSTGRES_DB: uzcode
+    ports:
+      # host:container — host port 5433 to avoid clashing with a local Postgres on 5432.
+      - "5433:5432"
+    volumes:
+      - uzcode_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U uzcode -d uzcode"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  uzcode_pgdata:

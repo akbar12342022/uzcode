@@ -1,0 +1,111 @@
+// UzCode database schema
+// Docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------------------------------------------------------------------------
+// Users
+// ---------------------------------------------------------------------------
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String?
+  passwordHash String?
+  image        String?
+  role         Role     @default(USER)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  submissions Submission[]
+}
+
+// ---------------------------------------------------------------------------
+// Problems
+// ---------------------------------------------------------------------------
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+model Problem {
+  id          String     @id @default(cuid())
+  slug        String     @unique
+  title       String
+  description String // markdown
+  difficulty  Difficulty @default(EASY)
+  tags        String[]
+  // Per-language starter code, e.g. { "python": "...", "javascript": "..." }
+  starterCode Json       @default("{}")
+  timeLimitMs Int        @default(2000)
+  orderIndex  Int        @default(0)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  testCases   TestCase[]
+  submissions Submission[]
+
+  @@index([difficulty])
+}
+
+// A single input/expected-output pair. We use a stdin/stdout model:
+// the user's program reads from stdin and must print the expected stdout.
+model TestCase {
+  id             String  @id @default(cuid())
+  problemId      String
+  problem        Problem @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  input          String // stdin
+  expectedOutput String // expected stdout
+  isSample       Boolean @default(false) // sample = shown to the user
+  orderIndex     Int     @default(0)
+
+  @@index([problemId])
+}
+
+// ---------------------------------------------------------------------------
+// Submissions
+// ---------------------------------------------------------------------------
+
+enum SubmissionStatus {
+  PENDING
+  ACCEPTED
+  WRONG_ANSWER
+  TIME_LIMIT_EXCEEDED
+  RUNTIME_ERROR
+  COMPILE_ERROR
+  INTERNAL_ERROR
+}
+
+model Submission {
+  id          String           @id @default(cuid())
+  userId      String
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  problemId   String
+  problem     Problem          @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  language    String
+  code        String
+  status      SubmissionStatus @default(PENDING)
+  runtimeMs   Int?
+  memoryKb    Int?
+  passedTests Int              @default(0)
+  totalTests  Int              @default(0)
+  createdAt   DateTime         @default(now())
+
+  @@index([userId])
+  @@index([problemId])
+  @@index([status])
+}
