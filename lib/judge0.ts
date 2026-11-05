@@ -1,39 +1,12 @@
 import "server-only";
 
+import {
+  JudgeError,
+  type JudgeRequest,
+  type JudgeResult,
+} from "@/lib/judge-core";
 import type { Verdict } from "@/lib/judge-types";
-
-export type JudgeTest = {
-  stdin: string;
-  expectedOutput: string;
-};
-
-export type JudgeResult = {
-  verdict: Verdict;
-  stdout: string;
-  /** stderr, or Judge0's own message when the program produced none. */
-  stderr: string;
-  compileOutput: string;
-  timeMs: number | null;
-  memoryKb: number | null;
-};
-
-export type JudgeErrorCode =
-  | "NOT_CONFIGURED"
-  | "UNAUTHORIZED"
-  | "RATE_LIMITED"
-  | "UNAVAILABLE"
-  | "TIMEOUT";
-
-/** The judge could not be reached or refused the request. */
-export class JudgeError extends Error {
-  constructor(
-    readonly code: JudgeErrorCode,
-    detail?: string,
-  ) {
-    super(detail ? `${code}: ${detail}` : code);
-    this.name = "JudgeError";
-  }
-}
+import { LANGUAGES } from "@/lib/languages";
 
 // Judge0 status ids: https://ce.judge0.com/#statuses-and-languages-status
 const IN_QUEUE = 1;
@@ -152,13 +125,13 @@ function toResult(raw: RawSubmission): JudgeResult {
  * output (ignoring trailing whitespace). Throws `JudgeError` when the judge
  * is not configured, refuses the request, or does not finish in time.
  */
-export async function judge(options: {
-  judge0LanguageId: number;
-  sourceCode: string;
-  tests: JudgeTest[];
-  timeLimitMs: number;
-}): Promise<JudgeResult[]> {
+export async function judgeWithJudge0(
+  options: JudgeRequest,
+): Promise<JudgeResult[]> {
   const { baseUrl, headers } = getConfig();
+  const judge0LanguageId = LANGUAGES.find(
+    ({ id }) => id === options.language,
+  )!.judge0Id;
   const cpuSeconds = options.timeLimitMs / 1000;
 
   const created = await request(
@@ -168,7 +141,7 @@ export async function judge(options: {
       headers,
       body: JSON.stringify({
         submissions: options.tests.map((test) => ({
-          language_id: options.judge0LanguageId,
+          language_id: judge0LanguageId,
           source_code: encode(options.sourceCode),
           // Programs commonly expect the last input line to end with a newline.
           stdin: encode(test.stdin.endsWith("\n") ? test.stdin : `${test.stdin}\n`),

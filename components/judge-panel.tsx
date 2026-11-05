@@ -31,9 +31,7 @@ function peak(values: (number | null)[]) {
 function Output({ label, value }: { label: string; value: string }) {
   return (
     <div className="min-w-0">
-      <p className="font-mono text-xs tracking-wider text-muted uppercase">
-        {label}
-      </p>
+      <p className="text-xs text-muted">{label}</p>
       <pre className="scroll-pane mt-1.5 max-h-40 overflow-auto rounded-md border border-line bg-surface px-3 py-2 font-mono text-sm leading-relaxed">
         {value === "" ? <span className="text-muted">{"(bo'sh)"}</span> : value}
       </pre>
@@ -86,11 +84,15 @@ function Report({ report }: { report: JudgeReport }) {
                 aria-label={`${index + 1}-test: ${VERDICTS[verdict].label}`}
                 onClick={() => setSelected(index)}
                 className={cn(
-                  "min-w-8 rounded-md border px-2 py-1 font-mono text-sm transition-colors",
-                  VERDICTS[verdict].tone,
+                  "size-7 rounded-[3px] border font-mono text-xs transition-colors",
+                  verdict === "ACCEPTED"
+                    ? "border-ok text-ok"
+                    : "border-fail text-fail",
                   index === selected
-                    ? "border-current bg-surface"
-                    : "border-line hover:bg-raised",
+                    ? verdict === "ACCEPTED"
+                      ? "bg-ok/20"
+                      : "bg-fail/20"
+                    : "hover:bg-raised",
                 )}
               >
                 {index + 1}
@@ -151,7 +153,7 @@ export function JudgePanel({
       className="scroll-pane max-h-[50%] shrink-0 overflow-y-auto border-t border-line bg-bg"
     >
       <div className="flex items-center justify-between gap-3 px-3 pt-2.5">
-        <h2 className="font-mono text-xs font-medium tracking-wider text-muted uppercase">
+        <h2 className="font-mono text-xs font-medium text-muted">
           {state.mode === "run"
             ? "Ishga tushirish natijasi"
             : "Yuborish natijasi"}

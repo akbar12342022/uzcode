@@ -6,12 +6,12 @@ import type {
   JudgeReport,
   JudgeResponse,
 } from "@/lib/judge-types";
+import { judge } from "@/lib/judge";
 import {
   JudgeError,
-  judge,
   type JudgeErrorCode,
   type JudgeResult,
-} from "@/lib/judge0";
+} from "@/lib/judge-core";
 import { LANGUAGES, type LanguageId } from "@/lib/languages";
 import { getProblemForJudging } from "@/lib/problems";
 
@@ -36,6 +36,8 @@ const inputSchema = z.object({
 const ERROR_MESSAGES: Record<JudgeErrorCode, string> = {
   NOT_CONFIGURED:
     "Tekshiruv tizimi sozlanmagan: .env faylida JUDGE0_URL va JUDGE0_RAPIDAPI_KEY ni to'ldiring.",
+  ENGINE_MISSING:
+    "Tekshiruvchi tayyor emas. Docker Desktop ochiq ekaniga ishonch hosil qiling, so'ng `npm run judge:build` ni ishga tushiring.",
   UNAUTHORIZED:
     "Tekshiruv tizimi kalitni qabul qilmadi: JUDGE0_RAPIDAPI_KEY ni va Judge0 CE obunasini tekshiring.",
   RATE_LIMITED:
@@ -119,7 +121,7 @@ async function judgeSolution(
 
   try {
     const results = await judge({
-      judge0LanguageId: language.judge0Id,
+      language: language.id,
       sourceCode: code,
       tests: tests.map((test) => ({
         stdin: test.input,

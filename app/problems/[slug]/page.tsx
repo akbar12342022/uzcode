@@ -24,16 +24,12 @@ function formatTimeLimit(ms: number) {
   return `${Number((ms / 1000).toFixed(2))} s`;
 }
 
-function TestData({ label, value }: { label: string; value: string }) {
+/** One side of a sample test. The column header names it, so rows stay bare. */
+function TestData({ value }: { value: string }) {
   return (
-    <div className="min-w-0 px-4 py-3">
-      <p className="font-mono text-xs tracking-wider text-muted uppercase">
-        {label}
-      </p>
-      <pre className="mt-1.5 overflow-x-auto font-mono text-sm leading-relaxed">
-        {value}
-      </pre>
-    </div>
+    <pre className="scroll-pane min-w-0 overflow-x-auto px-3.5 py-2.5 font-mono text-sm leading-relaxed text-ink-dim">
+      {value}
+    </pre>
   );
 }
 
@@ -51,57 +47,66 @@ export default async function ProblemPage({
       <article className="scroll-pane px-4 py-6 sm:px-6 lg:overflow-y-auto lg:py-8">
         <Link
           href="/problems"
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-muted transition-colors hover:text-ink"
+          className="inline-flex items-center gap-1.5 text-sm text-muted transition-colors hover:text-ink"
         >
           <ArrowLeft aria-hidden className="size-4" />
           Barcha masalalar
         </Link>
 
-        <h1 className="mt-4 text-2xl font-semibold tracking-tight text-balance">
-          <span className="font-mono font-normal text-muted">
+        <h1 className="mt-5 font-mono text-[1.4rem] leading-tight font-semibold tracking-tight text-balance">
+          <span className="font-normal text-muted">
             {problem.orderIndex + 1}.
           </span>{" "}
           {problem.title}
         </h1>
 
-        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted">
+        <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-muted">
           <DifficultyLabel difficulty={problem.difficulty} />
-          <span>Vaqt chegarasi: {formatTimeLimit(problem.timeLimitMs)}</span>
+          <span>
+            Vaqt chegarasi{" "}
+            <span className="font-mono text-ink-dim">
+              {formatTimeLimit(problem.timeLimitMs)}
+            </span>
+          </span>
           {problem.tags.length > 0 && (
-            <span className="flex flex-wrap gap-1.5">
+            <span className="flex flex-wrap gap-x-3 gap-y-1">
               {problem.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="rounded-full border border-line px-2 py-0.5 text-xs"
-                >
-                  {tag}
-                </span>
+                <span key={tag}>{tag}</span>
               ))}
             </span>
           )}
         </div>
 
-        <div className="mt-6">
+        <div className="mt-7">
           <Statement markdown={problem.description} />
         </div>
 
         {problem.testCases.length > 0 && (
-          <section className="mt-8">
-            <h2 className="font-mono text-xs font-medium tracking-wider text-muted uppercase">
-              Namuna testlar
-            </h2>
-            <ol className="mt-3 space-y-3">
-              {problem.testCases.map((test, index) => (
-                <li
-                  key={test.id}
-                  aria-label={`${index + 1}-test`}
-                  className="grid divide-y divide-line rounded-lg border border-line bg-surface sm:grid-cols-2 sm:divide-x sm:divide-y-0"
-                >
-                  <TestData label="Kirish" value={test.input} />
-                  <TestData label="Kutilgan chiqish" value={test.expectedOutput} />
-                </li>
-              ))}
-            </ol>
+          <section className="mt-9">
+            <h2 className="font-mono text-sm font-semibold">Namuna testlar</h2>
+            <div className="mt-3 overflow-hidden rounded-lg border border-line">
+              <div
+                aria-hidden
+                className="grid border-b border-line bg-surface text-xs text-muted sm:grid-cols-2"
+              >
+                <span className="px-3.5 py-2">Kirish</span>
+                <span className="hidden px-3.5 py-2 sm:block">
+                  Kutilgan chiqish
+                </span>
+              </div>
+              <ol className="divide-y divide-line">
+                {problem.testCases.map((test, index) => (
+                  <li
+                    key={test.id}
+                    aria-label={`${index + 1}-test`}
+                    className="grid divide-y divide-line sm:grid-cols-2 sm:divide-x sm:divide-y-0"
+                  >
+                    <TestData value={test.input} />
+                    <TestData value={test.expectedOutput} />
+                  </li>
+                ))}
+              </ol>
+            </div>
           </section>
         )}
       </article>

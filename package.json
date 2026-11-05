@@ -13,8 +13,9 @@
     "db:reset": "prisma migrate reset",
     "db:seed": "prisma db seed",
     "db:studio": "prisma studio",
-    "predev": "node scripts/copy-monaco.mjs",
-    "prebuild": "node scripts/copy-monaco.mjs"
+    "predev": "node scripts/copy-monaco.mjs && node scripts/ensure-judge-image.mjs",
+    "prebuild": "node scripts/copy-monaco.mjs && node scripts/ensure-judge-image.mjs",
+    "judge:build": "docker build -t uzcode-judge:1 judge"
   },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
